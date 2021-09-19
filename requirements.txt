@@ -8,3 +8,4 @@ yfinance==0.1.63
 numpy==1.19.5
 keras==2.6.0
 scikit_learn==0.24.2
+tensorflow
