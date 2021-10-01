@@ -7,7 +7,7 @@ from streamlit import beta_util
 import yfinance as yf
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-
+import streamlit.components.v1 as components
 
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -16,12 +16,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 import math
+from datetime import datetime,timedelta
 from sklearn.metrics import mean_squared_error,r2_score
 
 st.set_page_config(layout="wide")
 company = st.sidebar.selectbox("Select Company", ['TATACOFFEE.NS',"GMBREW.NS",'UBL.NS',"VBL.NS","SDBL.NS"])
 
-
+st.markdown('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">', unsafe_allow_html=True)
 year = '7y'
 
 if company == 'TATACOFFEE.NS':
@@ -32,19 +33,142 @@ else:
 
 name_model = {"TATACOFFEE.NS":'lstm_1.h5',"GMBREW.NS":'akshat.h5','UBL.NS':'ubl_1.h5',"VBL.NS":'varun_1.h5',"SDBL.NS":'sdbl_1.h5'}
 name_company = {"TATACOFFEE.NS":'Tata Coffee NSE',"GMBREW.NS":'G.M.Breweries','UBL.NS':'United Breweries Limited',"VBL.NS":"Varun Beverages Ltd","SDBL.NS":"Som Distilleries And Breweries Ltd"}
+company_beta = {"TATACOFFEE.NS":'0.67',"GMBREW.NS":'0.43','UBL.NS':'0.962',"VBL.NS":"-0.78","SDBL.NS":"1.21"}
+m_caps = {"TATACOFFEE.NS":38017032192,"GMBREW.NS":11186743296,'UBL.NS':415512461312,"VBL.NS":388690411520,"SDBL.NS":2635254272}
+pb_ratio = {"TATACOFFEE.NS":2.09,"GMBREW.NS":2.22,'UBL.NS':11.59,"VBL.NS":10.83,"SDBL.NS":0.93}
 
-
+today = datetime.today().day
+error_now = errors_closing[company][today-1]
 #tata_coffee = yf.Ticker('TATACOFFEE.NS')
 tata_coffee = yf.Ticker(company)
 stock_price = tata_coffee.history(period=year)
+info_all = tata_coffee.info
+
+
+news_data = {
+    'TATACOFFEE.NS':{
+        'date':'Jul 27',
+        "heading":"Investor sentiment improved over the past week",
+        "content":"""<div><p>After last week's 28% share price gain to ₹235, the stock trades at a trailing P/E ratio of 32.9x.</p>
+            <ul>
+                <li>Average trailing P/E is 20x in the Food industry in India.</li>
+                <li>Total returns to shareholders of 115% over the past three years.</li>
+            </ul>
+        </div>"""
+    },
+    "VBL.NS":{
+        'date':'Aug 09',
+        "heading":"Insider recently sold ₹13m worth of stock",
+        "content":"""<div><p>On the 5th of August, Ravindra Dhariwal sold around 17k shares on-market at roughly </p>
+        ₹781 per share. In the last 3 months, there was an even bigger sale from another insider worth ₹1.7b. 
+        Insiders have been net sellers, collectively disposing of ₹1.7b more than they bought in the last 12 months.
+        </div>"""
+    },
+    "UBL.NS":{
+        'date':'Sept 24',
+        'heading':'CII penalized a penalty of ₹752 cr to ubl and carlsberg',
+        'content':"""<div><p>Penalized the company for beer fixing prize in 7 states of India</p>
+        </div>"""
+    },
+    "SDBL.NS":{
+        'date':'Mar 01',
+        'heading':'New 90-day high: ₹35.05',
+        'content':"""<div><p>The company is up 35% from its price of ₹26.00 on 01 December 2020. The Indian market is up 16% over the last 90 days,
+         indicating the company outperformed over that time. It also outperformed the Beverage industry, which is up 9.0% over the same period.
+        </p></div> """
+    },
+     "GMBREW.NS":{
+        'date':'Jun 05',
+        'heading':'Investor sentiment improved over the past week',
+        'content':"""
+        <div>
+            <p>After last week's 22% share price gain to ₹524, the stock trades at a trailing P/E ratio of 12x.</p>
+                <ul>
+                    <li>Average trailing P/E is 30x in the Beverage industry in India.</li>
+                    <li>Total loss to shareholders of 34% over the past three years.</li>
+                </ul>
+            </div>"""
+    },
+
+}
+
+
 
 stock_price_daily = tata_coffee.history(period=year,step='1d')
 stock_price  = stock_price.style.format({"Daily": lambda t: t.strftime("%m/%d/%Y")}).data
 stock_price['Daily'] = stock_price.index.values
-st.title(name_company[company])
-st.write(stock_price.iloc[:-1].sort_index(ascending=False))
+stock_price['Daily Returns'] = stock_price['Close'].pct_change()
 
+last_pct = stock_price['Daily Returns'][-1]
+sheet_balance= tata_coffee.balance_sheet
+color_close = "no"
+if last_pct > 0:
+    color_close = 'success'
+elif last_pct < 0:
+    color_close = 'danger'
+
+year_change = info_all['52WeekChange']
+color_year_change = "no"
+if year_change > 0:
+    color_year_change = 'success'
+elif year_change < 0:
+    color_year_change = 'danger'
+
+#st.write(stock_price['Daily Returns'])
+now = stock_price['Daily'].max()
+year_back =stock_price['Daily'].max() - timedelta(weeks=52)
+df_52 = stock_price[(stock_price['Daily']>year_back) &  (stock_price['Daily']<now)]
+high52 = df_52['High'].max()
+low52 = df_52['Low'].min()
+
+st.title(name_company[company])
 close_price = stock_price['Close']
+#col_d1,col_d2,col_d3,col_d4 = st.columns([1,1,1,1]) 
+st.markdown(
+    f"""<div class='container-fluid mb-4 px-0'>
+    <div class='row mx-0'>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Closing Price</h3></div>
+                <div class='card-body h5 text-{color_close}' >
+                {close_price[-1]:.2f}
+                </div>
+            </div>
+        </div>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>52 Week H/L</h3></div>
+                <div class='card-body h5'>
+                {high52:.2f} / {low52:.2f}
+                </div>
+            </div>
+        </div>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>52W Change    </h3></div>
+                <div class='card-body h5 text-{color_year_change}'>
+                {year_change*100:.2f}%
+                </div>
+            </div>
+        </div>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Beta 5Y Monthly</h3></div>
+                <div class='card-body h5'>
+                {company_beta[company]}
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>""", unsafe_allow_html=True
+)
+col_head1,col_head2 = st.columns([1,1])
+col_head1.subheader("Stock Prices")
+col_head1.write(stock_price.iloc[:,:-2].sort_index(ascending=False))
+dougnnut_m_cap = px.pie(names=m_caps.keys(),values=m_caps.values(),hole=.5)
+col_head2.subheader("Market Caps")
+col_head2.plotly_chart(dougnnut_m_cap)
+
 m50 = close_price.rolling(50).mean()
 m100 = close_price.rolling(100).mean()
 m250 = close_price.rolling(250).mean()
@@ -52,7 +176,6 @@ m250 = close_price.rolling(250).mean()
 
 st.header("Moving Averages")
 st.line_chart(data=pd.DataFrame(data={"Closing Price":close_price,"50 Days":m50,"100 Days":m100}),)
-stock_price['Daily Returns'] = stock_price['Close'].pct_change()
 
 candle_layout = go.Layout(autosize=True,
     width=1440,height=800)
@@ -70,6 +193,18 @@ candle_stick = go.Figure(data=[go.Candlestick(x=stock_price_2['Daily'],
 
 st.plotly_chart(candle_stick)
 
+st.subheader("Significant News")
+st.markdown(f"""
+    <div class='card bg-transparent  border-secondary'>
+        <div class='card-header bg-dark h3'>
+            {news_data[company]['heading']}
+        </div>
+        <div class='card-body'>{news_data[company]['content']}</div>
+        <div class='card-footer muted text-right'>
+            {news_data[company]['date']}
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 
 def tell_status(daily_ret):
@@ -87,7 +222,7 @@ stock_price['ret_status'] = stock_price['Daily Returns'].apply(tell_status)
 fig_returns = px.line(stock_price[1:],y='Daily Returns',color='ret_status', width=1440)
 st.plotly_chart(fig_returns)
 
-col1, col2 = st.beta_columns(2)
+col1, col2 = st.columns(2)
 col1.header("Daily Returns Distribution")
 fig_returns_pie = px.pie(stock_price[2:],names='ret_status')
 col1.plotly_chart(fig_returns_pie)
@@ -166,24 +301,27 @@ if company == "TATACOFFEE.NS":
     data = pd.DataFrame(scaler.inverse_transform(y_test.reshape(1,-1))[0],columns=['Original'])
     data['Predicted'] = test_predict
 
-st.header(f"Accuracy of model {r2_score(data['Original'],data['Predicted'])*100}")
+#st.header(f"Accuracy of model {r2_score(data['Original'],data['Predicted'])*100}")
 
 st.header("Balance Sheet")
-st.write(tata_coffee.balance_sheet)
+st.write(sheet_balance)
 
 st.header("Financials")
 st.write(tata_coffee.financials)
 
-col_la1,col_la2= st.beta_columns([6,6])
+col_la1,col_la2= st.columns([6,6])
 
 #col_la1.header("Liabilities Vs Assets")
 
-balance_sheet =  tata_coffee.balance_sheet
+balance_sheet =  sheet_balance
 liab_assets = balance_sheet.loc[['Total Liab','Total Assets']].transpose()
 liab_assets = liab_assets.reset_index()
 liab_assets.columns = ['Year',"Total Liab","Total Assets"]
 
 financials = tata_coffee.financials.transpose()
+
+
+
 profit_margin =  pd.DataFrame(financials['Gross Profit'] / financials['Total Revenue'] * 100,columns=['Profit Margin']).reset_index()
 profit_margin.columns = ['Year',"Profit Margin"]
 debt_to_asset_ratio = (liab_assets['Total Liab'] / liab_assets['Total Assets']) *100
@@ -194,19 +332,20 @@ fig2 = go.Figure(
         go.Bar(
             name="Liabilities",
             x = ['2018','2019','2020','2021'],
-            y=liab_assets["Total Liab"],
+            y=liab_assets["Total Liab"][::-1],
             offsetgroup=0,
         ),
         go.Bar(
             name="Assets",
            x = ['2018','2019','2020','2021'],
-            y=liab_assets["Total Assets"],
+            y=liab_assets["Total Assets"][::-1],
             offsetgroup=1,
         ),
         
     ],
     layout=go.Layout(
-        title="Liabilities Vs Assets",
+        title="Total Liabilities Vs Total Assets",
+    
     )
     
 )
@@ -233,12 +372,12 @@ fig3 = go.Figure(
         go.Bar(
             name="Total Revenue",
             x = ['2018','2019','2020','2021'],
-            y=revenue_income["Total Revenue"],
+            y=revenue_income["Total Revenue"][::-1],
             offsetgroup=0,
         ),
         go.Bar(
             name="Net Income",
-             x = ['2018','2019','2020','2021'],  
+             x = ['2018','2019','2020','2021'][::-1],  
             y=revenue_income["Net Income"],
             offsetgroup=1,
         ),
@@ -256,35 +395,73 @@ profit_margin_chart.update_layout(title='Profit Margin %',
 col_la2.plotly_chart(fig3)
 col_la2.plotly_chart(profit_margin_chart)
 
+## Current Assets and liabilities
+current_a_l = balance_sheet.loc[['Total Current Assets','Total Current Liabilities']].transpose()
+fig_ca_cl = go.Figure(
+    data=[
+        go.Bar(
+            name="Current Liablities",
+            x = ['2018','2019','2020','2021'],
+            y=current_a_l["Total Current Liabilities"][::-1].values,
+            offsetgroup=0,
+        ),
+        go.Bar(
+            name="Current Assets",
+             x = ['2018','2019','2020','2021'],  
+            y=current_a_l["Total Current Assets"][::-1].values,
+            offsetgroup=1,
+        ),
+    ],
+    layout=go.Layout(
+        title="Current Assets vs Current Liabilities",
+        yaxis_title="Cost"
+    )
+)
+
+
+
+col_cal1,col_cal_2 = st.columns([1,1])
+col_cal1.plotly_chart(fig_ca_cl)
+liquidity_ratio = pd.DataFrame(current_a_l['Total Current Assets']/ current_a_l['Total Current Liabilities'],columns=['lq'])
+ca_cl = px.line(y=liquidity_ratio['lq'],x=liquidity_ratio.index.values)
+ca_cl.update_layout(xaxis_title="Time",
+    yaxis_title="CA/CL Ratio",title="Liquidity Ratio")
+col_cal_2.plotly_chart(ca_cl)
+
+
 ### Cash Flow
-demo_cash_flow =  pd.DataFrame(tata_coffee.cashflow.loc['Investments'])
+demo_cash_flow =  pd.DataFrame(tata_coffee.cashflow.loc['Investments',:],columns=['Investments'])
 demo_cash_flow['Operation'] = financials['Operating Income']
 demo_cash_flow['Financing']=tata_coffee.cashflow.loc['Total Cash From Financing Activities']
 #demo_cash_flow['Capital Expenditures'] = tata_coffee.cashflow.loc['Capital Expenditures']
+
+st.subheader("Cash Flow")
+st.write(demo_cash_flow)
+
 fig_cf = go.Figure(
     data=[
         go.Line(
         name="Investments",
             x = ['2018','2019','2020','2021'], 
-            y = demo_cash_flow['Investments'],
+            y = demo_cash_flow['Investments'][::-1],
             legendgroup = 0
         ),
         go.Line(
         name="Operation",
             x = ['2018','2019','2020','2021'], 
-            y = demo_cash_flow['Operation'],
+            y = demo_cash_flow['Operation'][::-1],
             legendgroup = 1
         ),
         go.Line(
         name="Financing",
             x = ['2018','2019','2020','2021'], 
-            y = demo_cash_flow['Financing'],
+            y = demo_cash_flow['Financing'][::-1],
             legendgroup = 2
         ),
         
     ],
     layout=go.Layout(
-        title="Cash Flow",
+
         xaxis_title="Year",
         width=1440
     )
@@ -323,9 +500,40 @@ while(i<30):
 day_new=np.arange(1,101)
 day_pred=np.arange(101,131)
 
-st.write(f"Next Day Prediction {scaler.inverse_transform(lst_output)[0]}")
+#st.write(f"Next Day Prediction {scaler.inverse_transform(lst_output)[0]}")
 
-for_week , for_month = st.beta_columns([6,6])
+predicted = close_price[-1] * error_now /100
+error_perct =  (close_price[-1] - predicted )*100/close_price[-1]
+st.markdown(
+    f"""<div class='container-fluid mb-4 px-0'>
+    <div class='row mx-0'>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Closing Price</h3></div>
+                <div class='card-body h5 ' >
+                {close_price[-1]:.2f}
+                </div>
+            </div>
+        </div>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Predicted Price </h3></div>
+                <div class='card-body h5'>
+                {abs(predicted):.2f} 
+                </div>
+            </div>
+        </div>
+        <div class='col'>
+            <div class='card  bg-transparent border-secondary' >
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Error Percentage    </h3></div>
+                <div class='card-body h5 text'>
+                {error_perct:.2f}%
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>""", unsafe_allow_html=True)
+for_week , for_month = st.columns([6,6])
 forecast_week = px.line(scaler.inverse_transform(lst_output[:7]))
 for_week.markdown("7 Days Forecast")
 for_week.plotly_chart(forecast_week)
