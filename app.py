@@ -165,7 +165,7 @@ st.markdown(
     <div class='row mx-0'>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Closing Price</h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>Closing Price</h3></div>
                 <div class='card-body h5 text-{color_close}' >
                 {close_price[-1]:.2f}
                 </div>
@@ -173,7 +173,7 @@ st.markdown(
         </div>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>52 Week H/L</h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>52 Week H/L</h3></div>
                 <div class='card-body h5'>
                 {high52:.2f} / {low52:.2f}
                 </div>
@@ -181,7 +181,7 @@ st.markdown(
         </div>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>52W Change    </h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>52W Change    </h3></div>
                 <div class='card-body h5 text-{color_year_change}'>
                 {year_change*100:.2f}%
                 </div>
@@ -189,7 +189,7 @@ st.markdown(
         </div>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Beta 5Y Monthly</h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>Beta 5Y Monthly</h3></div>
                 <div class='card-body h5'>
                 {company_beta[company]}
                 </div>
@@ -232,7 +232,7 @@ st.plotly_chart(candle_stick)
 st.subheader("Significant News")
 st.markdown(f"""
     <div class='card bg-transparent  border-secondary'>
-        <div class='card-header bg-dark h3'>
+        <div class='card-header bg-dark h3 text-white'>
             {news_data[company]['heading']}
         </div>
         <div class='card-body'>{news_data[company]['content']}</div>
@@ -545,7 +545,7 @@ st.markdown(
     <div class='row mx-0'>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Closing Price</h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>Closing Price</h3></div>
                 <div class='card-body h5 ' >
                 {close_price[-1]:.2f}
                 </div>
@@ -553,7 +553,7 @@ st.markdown(
         </div>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Predicted Price </h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>Predicted Price </h3></div>
                 <div class='card-body h5'>
                 {abs(predicted):.2f} 
                 </div>
@@ -561,7 +561,7 @@ st.markdown(
         </div>
         <div class='col'>
             <div class='card  bg-transparent border-secondary' >
-                <div class='card-header bg-dark'><h3 class='mb-0 p-0'>Error Percentage    </h3></div>
+                <div class='card-header bg-dark'><h3 class='mb-0 p-0 text-white'>Error Percentage    </h3></div>
                 <div class='card-body h5 text'>
                 {error_perct:.2f}%
                 </div>
