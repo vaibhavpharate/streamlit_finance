@@ -454,7 +454,7 @@ fig_ca_cl = go.Figure(
 col_cal1,col_cal_2 = st.columns([1,1])
 col_cal1.plotly_chart(fig_ca_cl)
 liquidity_ratio = pd.DataFrame(current_a_l['Total Current Assets']/ current_a_l['Total Current Liabilities'],columns=['lq'])
-ca_cl = px.line(y=liquidity_ratio['lq'],x=liquidity_ratio.index.values,markers='O')
+ca_cl = px.line(y=liquidity_ratio['lq'],x=liquidity_ratio.index.values)
 ca_cl.update_layout(xaxis_title="Time",
     yaxis_title="CA/CL Ratio",title="Liquidity Ratio")
 col_cal_2.plotly_chart(ca_cl)
