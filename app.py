@@ -101,9 +101,9 @@ news_data = {
         </div>"""
     },
     "UBL.NS":{
-        'date':'Aug 04',
+        'date':'Sept 24',
         'heading':'CII penalized a penalty of ₹752 cr to ubl and carlsberg',
-        'content':"""<div><p> beer fixing prize in 7 states of India</p>
+        'content':"""<div><p>Penalized the company for beer fixing prize in 7 states of India</p>
         </div>"""
     },
     "SDBL.NS":{
