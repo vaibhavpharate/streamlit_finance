@@ -80,6 +80,16 @@ tata_coffee = yf.Ticker(company)
 stock_price = tata_coffee.history(period=year)
 info_all = tata_coffee.info
 
+## This is new
+shareholders_all = {
+    "TATACOFFEE.NS":{'Promoters':57.48,'Public':37.27,'MF':2.06,'Others':3.1,"FII":0.09},
+    "GMBREW.NS":{'Promoters':74.43,'Public':24.19,'MF':0,'FII':1.38},
+    'UBL.NS':{'Promoters':72.71,'Public':6.23,'MF':8.24,'Others':3,"FII":9.8},
+    "VBL.NS":{'Promoters':65.82,'Public':7.62,'MF':5.51,'FII':20.73},
+    "SDBL.NS":{'Promoters':24.48,'Public':74.47,'FII':0.05,'Others':1}
+}
+shareholders = shareholders_all[company]
+
 
 news_data = {
     'TATACOFFEE.NS':{
@@ -204,6 +214,17 @@ col_head1.write(stock_price.iloc[:,:-2].sort_index(ascending=False))
 dougnnut_m_cap = px.pie(names=m_caps.keys(),values=m_caps.values(),hole=.5)
 col_head2.subheader("Market Caps")
 col_head2.plotly_chart(dougnnut_m_cap)
+
+## This is new
+
+## This is new
+col_sh_1,col_sh_2,col_sh_3 = st.columns([1,1,1])
+col_sh_1.subheader("Shareholders Summary")
+col_sh_1.write(pd.DataFrame(list(shareholders.items()),columns=['Shareholders',"Percentages"]))
+
+dougnnut_share_holders = px.pie(names=shareholders.keys(),values=shareholders.values(),hole=.5)
+col_sh_2.plotly_chart(dougnnut_share_holders)
+
 
 m50 = close_price.rolling(50).mean()
 m100 = close_price.rolling(100).mean()
